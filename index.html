@@ -77,35 +77,33 @@
       });
     }, 1000);
 
-    // Extension detection
+    // Detect if any event listeners have been removed
     function detectRightClickExtension() {
-      let isExtensionActive = false;
+      const listeners = getEventListeners(video);
 
-      // Check if contextmenu or mousedown listeners are removed
-      const testEvent = new MouseEvent('mousedown', {
-        button: 2, // Right-click button
-      });
-
-      video.dispatchEvent(testEvent);
-      videos.forEach(vid => {
-        vid.dispatchEvent(testEvent);
-      });
-
-      // Check if the right-click menu was re-enabled by an extension
-      document.addEventListener('contextmenu', (e) => {
-        isExtensionActive = true;
-        e.preventDefault();
-      });
-
-      if (isExtensionActive) {
-        // Redirect or block the page
-        window.location.href = 'about:blank'; // Redirect to a blank page
-        alert('A right-click enabling extension has been detected. Access to this content is blocked.');
+      if (listeners.contextmenu === undefined || listeners.mousedown === undefined) {
+        alert("Right-click enabling extension detected. Page will be blocked.");
+        window.location.href = "about:blank";
       }
     }
 
-    // Delay the detection to allow extensions to modify the DOM
-    setTimeout(detectRightClickExtension, 2000);
+    // Check for changes to critical properties
+    function checkForTampering() {
+      const originalPreventDefault = Event.prototype.preventDefault;
+      const originalAddEventListener = EventTarget.prototype.addEventListener;
+
+      if (Event.prototype.preventDefault !== originalPreventDefault ||
+          EventTarget.prototype.addEventListener !== originalAddEventListener) {
+        alert("Potential tampering detected. Page will be blocked.");
+        window.location.href = "about:blank";
+      }
+    }
+
+    // Delay detection to allow extensions to modify the DOM
+    setTimeout(() => {
+      detectRightClickExtension();
+      checkForTampering();
+    }, 3000);
 
   })();
 </script>
