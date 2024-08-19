@@ -1,0 +1,80 @@
+<video id="myVideo" width="640" height="480" controls>
+  <source src="sender.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+<video class="myVideo" width="640" height="480" controls>
+  <source src="sender.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+<script>
+  (function() {
+    function setNoDownloadAttribute(video) {
+      video.setAttribute('controlsList', 'nodownload');
+    }
+
+    const video = document.getElementById('myVideo');
+    setNoDownloadAttribute(video);
+
+    const videos = document.querySelectorAll('.myVideo');
+    videos.forEach(vid => {
+      setNoDownloadAttribute(vid);
+    });
+
+    function preventRightClick(e) {
+      e.preventDefault();
+    }
+
+    function preventMouseDown(e) {
+      if (e.button === 2) { // right-click
+        e.preventDefault();
+      }
+    }
+
+    function attachListeners(video) {
+      video.addEventListener('contextmenu', preventRightClick);
+      video.addEventListener('mousedown', preventMouseDown);
+    }
+
+    attachListeners(video);
+    videos.forEach(vid => {
+      attachListeners(vid);
+    });
+
+    // Use MutationObserver to reapply event listeners if removed
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'controlsList') {
+          if (!mutation.target.hasAttribute('controlsList')) {
+            setNoDownloadAttribute(mutation.target);
+          }
+        }
+        if (mutation.type === 'childList' || mutation.type === 'subtree') {
+          attachListeners(mutation.target);
+        }
+      });
+    });
+
+    const config = { attributes: true, childList: true, subtree: true };
+    observer.observe(video, config);
+    videos.forEach(vid => {
+      observer.observe(vid, config);
+    });
+
+    // Continuously monitor and reapply the controlsList attribute
+    setInterval(() => {
+      if (!video.hasAttribute('controlsList')) {
+        setNoDownloadAttribute(video);
+      }
+      videos.forEach(vid => {
+        if (!vid.hasAttribute('controlsList')) {
+          setNoDownloadAttribute(vid);
+        }
+      });
+      attachListeners(video);
+      videos.forEach(vid => {
+        attachListeners(vid);
+      });
+    }, 1000);
+  })();
+</script>
