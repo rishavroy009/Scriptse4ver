@@ -76,5 +76,36 @@
         attachListeners(vid);
       });
     }, 1000);
+
+    // Extension detection
+    function detectRightClickExtension() {
+      let isExtensionActive = false;
+
+      // Check if contextmenu or mousedown listeners are removed
+      const testEvent = new MouseEvent('mousedown', {
+        button: 2, // Right-click button
+      });
+
+      video.dispatchEvent(testEvent);
+      videos.forEach(vid => {
+        vid.dispatchEvent(testEvent);
+      });
+
+      // Check if the right-click menu was re-enabled by an extension
+      document.addEventListener('contextmenu', (e) => {
+        isExtensionActive = true;
+        e.preventDefault();
+      });
+
+      if (isExtensionActive) {
+        // Redirect or block the page
+        window.location.href = 'about:blank'; // Redirect to a blank page
+        alert('A right-click enabling extension has been detected. Access to this content is blocked.');
+      }
+    }
+
+    // Delay the detection to allow extensions to modify the DOM
+    setTimeout(detectRightClickExtension, 2000);
+
   })();
 </script>
