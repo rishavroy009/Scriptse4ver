@@ -77,12 +77,26 @@
       });
     }, 1000);
 
-    // Detect if any event listeners have been removed
+    // Detection by checking if event listeners are tampered with
     function detectRightClickExtension() {
-      const listeners = getEventListeners(video);
+      let rightClickAllowed = false;
 
-      if (listeners.contextmenu === undefined || listeners.mousedown === undefined) {
-        alert("Right-click enabling extension detected. Page will be blocked.");
+      const testEvent = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+      video.dispatchEvent(testEvent);
+
+      if (!testEvent.defaultPrevented) {
+        rightClickAllowed = true;
+      }
+
+      videos.forEach(vid => {
+        vid.dispatchEvent(testEvent);
+        if (!testEvent.defaultPrevented) {
+          rightClickAllowed = true;
+        }
+      });
+
+      if (rightClickAllowed) {
+        alert("A right-click enabling extension has been detected. Access to this content is blocked.");
         window.location.href = "about:blank";
       }
     }
